@@ -37,7 +37,7 @@ def setup(http):
     db.set('service_name', service)
     set_state('client.initial')
     private_ips = ['{}:{}'.format(h['hostname'], h['port']) for h in http.services()[0]['hosts']]
-    db.set('private_ips', private_ips)
+    db.set('private_ips', ' '.join(private_ips))
     set_state('client.initial_http')
 
 
@@ -45,7 +45,7 @@ def setup(http):
 def update(http):
     private_ips = ['{}:{}'.format(h['hostname'], h['port']) for h in http.services()[0]['hosts']]
     if private_ips != db.get('private_ips'):
-        db.set('private_ips', private_ips)
+        db.set('private_ips', ' '.join(private_ips))
         remove_state('client.configured')
 
 
@@ -70,18 +70,10 @@ def done(ssltermination):
 
 @when('config.changed')
 def changed_config():
-    fqdns = config()['fqdns'].split(' ')
-    try:
-        basic_auth = [
-            {'user': u.split(' | ', 1)[0], 'password': u.split('  ', 1)[1]}
-            for u in config()['basic_auth'].split(' | ')
-        ]
-    except IndexError:
-        basic_auth = []
     lb = config()['loadbalancing']
     loadbalancing = lb if lb in ['least-connected', 'ip-hash'] else ''
-    db.set('fqdns', fqdns)
-    db.set('basic_auth', basic_auth)
+    db.set('fqdns', config()['fqdns'])
+    db.set('basic_auth', config()['basic_auth'])
     db.set('loadbalancing', loadbalancing)
     status_set('maintenance', 'Reconfiguring')
     remove_state('client.configured')
