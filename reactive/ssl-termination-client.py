@@ -70,7 +70,7 @@ def done(ssltermination):
 
 @when('config.changed')
 def changed_config():
-    fqdns = config()['fqdns']
+    fqdns = config()['fqdns'].split(' ')
     try:
         basic_auth = [
             {'user': u.split(' | ', 1)[0], 'password': u.split('  ', 1)[1]}
