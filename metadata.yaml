@@ -1,0 +1,20 @@
+name: ssl-termination-client
+summary: Client which forms a bridge between a webservice and the proxy, to allow service-specific configuration
+maintainer: Mathijs Moerman <mathijs.moerman@tengu.io>
+description: |
+  Client which forms a bridge between a webservice and the proxy, to allow service-specific configuration
+tags:
+  - cache-proxy
+  - security
+  - web_server
+subordinate: true
+#provides:
+#  webservice:
+#    interface: webservice
+requires:
+  ssltermination:
+    interface: ssl-termination
+    scope: container
+  http:
+    interface: http
+series: ['xenial']
