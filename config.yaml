@@ -8,7 +8,7 @@ options:
     type: string
     default: ''
     description: |
-      Space-separated username and password for basic authentication. Multiple
+      2 Space-separated username and password for basic authentication. Multiple
       users can be given using " | "as a separator.
       Example:
         usr1  pass1 | usr2  pass2 | usr3  pass3
