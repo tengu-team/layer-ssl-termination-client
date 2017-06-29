@@ -63,17 +63,19 @@ def request(ssltermination):
     set_state('client.configured')
 
 
-@when('ssltermination.available')
-def done(ssltermination):
-    status_set('active', 'SSL-proxy config: Done')
+@when('client.configured')
+def done():
+    status_set('active', 'active (ready)')
 
 
 @when('config.changed')
 def changed_config():
-    lb = config()['loadbalancing']
-    loadbalancing = lb if lb in ['least-connected', 'ip-hash'] else ''
-    db.set('fqdns', config()['fqdns'])
-    db.set('basic_auth', config()['basic_auth'])
-    db.set('loadbalancing', loadbalancing)
     status_set('maintenance', 'Reconfiguring')
-    remove_state('client.configured')
+    loadbalancing = config()['loadbalancing']
+    if loadbalancing not in ['', 'least-connected', 'ip-hash']:
+        status_set('blocked', 'Invalid loadbalancing type given, options are: ["", "least-connected", "ip-hash"]')
+    else:
+        db.set('fqdns', config()['fqdns'])
+        db.set('basic_auth', config()['basic_auth'])
+        db.set('loadbalancing', loadbalancing)
+        remove_state('client.configured')
