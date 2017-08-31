@@ -37,7 +37,7 @@ def setup(http):
     db.set('service_name', service)
     set_state('client.initial')
     private_ips = ['{}:{}'.format(h['hostname'], h['port']) for h in http.services()[0]['hosts']]
-    db.set('private_ips', ' '.join(private_ips))
+    db.set('private_ips', private_ips)
     set_state('client.initial_http')
 
 
@@ -45,8 +45,9 @@ def setup(http):
 def update(http):
     private_ips = ['{}:{}'.format(h['hostname'], h['port']) for h in http.services()[0]['hosts']]
     if private_ips != db.get('private_ips'):
-        db.set('private_ips', ' '.join(private_ips))
+        db.set('private_ips', private_ips)
         remove_state('client.configured')
+    status_set('active', 'Client configured')
 
 
 @when('ssltermination.connected', 'client.initial_http')
@@ -61,11 +62,6 @@ def request(ssltermination):
         db.get('loadbalancing')
     )
     set_state('client.configured')
-
-
-@when('client.configured')
-def done():
-    status_set('active', 'active (ready)')
 
 
 @when('config.changed')
