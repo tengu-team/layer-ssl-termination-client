@@ -13,65 +13,97 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import os
 
+import os
 from charmhelpers.core import unitdata
 from charmhelpers.core.hookenv import status_set, config
-
-from charms.reactive import when, when_not, set_state, remove_state
-
-
-db = unitdata.kv()
+from charms.reactive import when, when_not, set_flag, clear_flag, when_any
+from charms.reactive.relations import endpoint_from_flag
 
 
-@when('ssltermination.connected')
-@when_not('http.available')
-def initial(ssltermination):
-    status_set('blocked', 'Waiting for relation with http-service')
+config = config()
 
 
-@when('http.available')
-@when_not('client.initial_http')
-def setup(http):
-    service = os.environ['JUJU_REMOTE_UNIT'].split('/')[0]
-    db.set('service_name', service)
-    set_state('client.initial')
-    private_ips = ['{}:{}'.format(h['hostname'], h['port']) for h in http.services()[0]['hosts']]
-    db.set('private_ips', private_ips)
-    set_state('client.initial_http')
+########################################################################
+# Install
+########################################################################
+
+@when('endpoint.ssl-termination.available')
+@when_not('reverseproxy.available')
+def missing_http_relation():
+    status_set('blocked', 'Waiting for http relation')
 
 
-@when('http.available', 'client.configured')
-def update(http):
-    private_ips = ['{}:{}'.format(h['hostname'], h['port']) for h in http.services()[0]['hosts']]
-    if private_ips != db.get('private_ips'):
-        db.set('private_ips', private_ips)
-        remove_state('client.configured')
-    status_set('active', 'Client configured')
+@when('reverseproxy.available')
+@when_not('endpoint.ssl-termination.available')
+def missing_ssl_termination_relation():
+    status_set('blocked', 'Waiting for ssl-termination-proxy relation')
 
 
-@when('ssltermination.connected', 'client.initial_http')
-@when_not('client.configured')
-def request(ssltermination):
-    status_set('active', 'Configuring domainnames and NGINX configs')
-    ssltermination.request_proxy(
-        db.get('service_name'),
-        db.get('fqdns'),
-        db.get('private_ips'),
-        db.get('basic_auth'),
-        db.get('loadbalancing')
-    )
-    set_state('client.configured')
+@when_any('config.changed.fqdns',
+          'config.changed.credentials')
+def fqdns_changed():
+    clear_flag('client.cert-requested')
+    clear_flag('cert-created')
 
 
-@when('config.changed')
-def changed_config():
-    status_set('maintenance', 'Reconfiguring')
-    loadbalancing = config()['loadbalancing']
-    if loadbalancing not in ['', 'least-connected', 'ip-hash']:
-        status_set('blocked', 'Invalid loadbalancing type given, options are: ["", "least-connected", "ip-hash"]')
-    else:
-        db.set('fqdns', config()['fqdns'])
-        db.set('basic_auth', config()['basic_auth'])
-        db.set('loadbalancing', loadbalancing)
-        remove_state('client.configured')
+########################################################################
+# Configure certificate
+########################################################################
+
+@when('reverseproxy.available',
+      'endpoint.ssl-termination.available')
+@when_not('client.cert-requested')
+def create_cert_request():
+    if not config.get('fqdns'):
+        status_set('blocked', 'Waiting for fqdns config')
+        return
+    ssl_termination = endpoint_from_flag('endpoint.ssl-termination.available')
+    reverseproxy = endpoint_from_flag('reverseproxy.available')
+
+    services = reverseproxy.services()
+    if not services:
+        return
+
+    upstreams = []
+    for service in services:
+        upstreams.extend(service['hosts'])
+
+    ssl_termination.send_cert_info({
+        'fqdn': config.get('fqdns').rstrip().split(),
+        'contact-email': config.get('contact-email', ''),
+        'credentials': config.get('credentials', ''),
+        'upstreams': upstreams,
+    })
+    status_set('waiting', 'Requesting certificate')
+    set_flag('client.cert-requested')
+
+
+@when('reverseproxy.available',
+      'endpoint.ssl-termination.update')
+@when_not('client.cert-created')
+def check_cert_created():
+    ssl_termination = endpoint_from_flag('endpoint.ssl-termination.update')
+    status = ssl_termination.get_status()
+
+    # Only one fqdn will be returned for shared certs.
+    # If any fqdn match, the cert has been created.
+    match_fqdn = config.get('fqdns').rstrip().split()
+    for unit_status in status:
+        for fqdn in unit_status['status']:
+            if fqdn in match_fqdn:
+                status_set('active', 'certificate created')
+                set_flag('client.cert-created')
+
+
+########################################################################
+# Unconfigure certificate
+########################################################################
+
+@when('endpoint.ssl-termination.available',
+      'client.cert-requested')
+@when_not('reverseproxy.available')
+def reverseproxy_removed():
+    endpoint = endpoint_from_flag('endpoint.ssl-termination.available')
+    endpoint.send_cert_info({})
+    clear_flag('client.cert-requested')

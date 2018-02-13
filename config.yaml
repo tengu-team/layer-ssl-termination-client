@@ -3,15 +3,14 @@ options:
     type: string
     default: ''
     description: |
-      Space-separated list of domainnames this service will use
-  basic_auth:
+      Space-separated list of domain names. These will share the same certificate.
+  credentials:
     type: string
     default: ''
     description: |
-      2 Space-separated username and password for basic authentication. Multiple
-      users can be given using " | "as a separator.
-      Example:
-        usr1  pass1 | usr2  pass2 | usr3  pass3
-  loadbalancing:
+      Space-separated username and password for basic authentication.
+  contact-email:
     type: string
     default: ''
+    description: |
+      Contact email for Let's Encrypt
