@@ -1,4 +1,4 @@
-name: ssl-termination-client
+name: ssl-termination-fqdn
 summary: Bridge between a webservice and the ssl-termination-proxy.
 maintainer: Sander Borny <sander.borny@ugent.be>
 description: |

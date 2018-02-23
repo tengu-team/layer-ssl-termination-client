@@ -1,5 +1,5 @@
 
-# SSL Termination Client
+# SSL Termination FQDN
 
 This charm installs a subordinate for the [SSL Termination Proxy](https://github.com/tengu-team/layer-ssl-termination-proxy).
 It requests ssl-termination for a webservice.
@@ -20,8 +20,8 @@ Example: `"example.com www.example.com"`
 ```bash
 # Deploy your http webservice.
 juju deploy jenkins
-# Deploy your proxy-client
-juju deploy cs:~tengu-team/ssl-termination-client ssl-jenkins
+# Deploy your ssl-termination-fqdn
+juju deploy cs:~tengu-team/ssl-termination-fqdn ssl-jenkins
 # Configure the client
 juju config ssl-jenkins fqdns="example.com www.example.com"
 juju config ssl jenkins basic_auth="username password"
