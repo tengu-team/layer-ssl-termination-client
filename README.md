@@ -39,3 +39,4 @@ This software was created in the [IBCN research group](https://www.ibcn.intec.ug
  - Sander Borny <sander.borny@ugent.be>
  - Merlijn Sebrechts <merlijn.sebrechts@gmail.com>
  - Mathijs Moerman <mathijs.moerman@tengu.io>
+  - Crawler icon made by [Vectors Market](https://www.flaticon.com/authors/vectors-market) from [www.flaticon.com](www.flaticon.com) licensed as [Creative Commons BY 3.0](http://creativecommons.org/licenses/by/3.0/)
