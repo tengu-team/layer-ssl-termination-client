@@ -12,6 +12,6 @@ requires:
   ssl-termination:
     interface: ssl-termination
     scope: container
-  reverseproxy:
+  website:
     interface: http
 series: ['xenial']

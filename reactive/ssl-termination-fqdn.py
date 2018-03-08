@@ -29,12 +29,12 @@ config = config()
 ########################################################################
 
 @when('endpoint.ssl-termination.available')
-@when_not('reverseproxy.available')
+@when_not('website.available')
 def missing_http_relation():
     status_set('blocked', 'Waiting for http relation')
 
 
-@when('reverseproxy.available')
+@when('website.available')
 @when_not('endpoint.ssl-termination.available')
 def missing_ssl_termination_relation():
     status_set('blocked', 'Waiting for ssl-termination-proxy relation')
@@ -51,7 +51,7 @@ def fqdns_changed():
 # Configure certificate
 ########################################################################
 
-@when('reverseproxy.available',
+@when('website.available',
       'endpoint.ssl-termination.available')
 @when_not('client.cert-requested')
 def create_cert_request():
@@ -59,9 +59,9 @@ def create_cert_request():
         status_set('blocked', 'Waiting for fqdns config')
         return
     ssl_termination = endpoint_from_flag('endpoint.ssl-termination.available')
-    reverseproxy = endpoint_from_flag('reverseproxy.available')
+    website = endpoint_from_flag('website.available')
 
-    services = reverseproxy.services()
+    services = website.services()
     if not services:
         return
 
@@ -79,7 +79,7 @@ def create_cert_request():
     set_flag('client.cert-requested')
 
 
-@when('reverseproxy.available',
+@when('website.available',
       'endpoint.ssl-termination.update')
 @when_not('client.cert-created')
 def check_cert_created():
@@ -102,8 +102,8 @@ def check_cert_created():
 
 @when('endpoint.ssl-termination.available',
       'client.cert-requested')
-@when_not('reverseproxy.available')
-def reverseproxy_removed():
+@when_not('website.available')
+def website_removed():
     endpoint = endpoint_from_flag('endpoint.ssl-termination.available')
     endpoint.send_cert_info({})
     clear_flag('client.cert-requested')
