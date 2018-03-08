@@ -75,7 +75,7 @@ def create_cert_request():
         'credentials': config.get('credentials', ''),
         'upstreams': upstreams,
     })
-    status_set('waiting', 'Requesting certificate')
+    status_set('waiting', 'Waiting for proxy to register certificate')
     set_flag('client.cert-requested')
 
 
@@ -92,7 +92,7 @@ def check_cert_created():
     for unit_status in status:
         for fqdn in unit_status['status']:
             if fqdn in match_fqdn:
-                status_set('active', 'certificate created')
+                status_set('active', 'Ready')
                 set_flag('client.cert-created')
 
 
