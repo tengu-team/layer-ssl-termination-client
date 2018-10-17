@@ -1,4 +1,5 @@
 includes: ['layer:basic',
            'interface:ssl-termination',
-           'interface:http']
+           'interface:http',
+           'interface:tcp']
 repo: git@github.com:tengu-team/layer-ssl-termination-fqdn.git

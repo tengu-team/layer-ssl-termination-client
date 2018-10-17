@@ -14,4 +14,6 @@ requires:
     scope: container
   website:
     interface: http
+  tcp:
+    interface: tcp
 series: ['xenial']
