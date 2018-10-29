@@ -31,6 +31,7 @@ config = config()
 @when('endpoint.ssl-termination.available')
 @when_not('website.available')
 def missing_http_relation():
+    clear_flag('client.cert-created')
     status_set('blocked', 'Waiting for http relation')
 
 
@@ -44,7 +45,7 @@ def missing_ssl_termination_relation():
           'config.changed.credentials')
 def fqdns_changed():
     clear_flag('client.cert-requested')
-    clear_flag('cert-created')
+    clear_flag('client.cert-created')
 
 
 ########################################################################
@@ -94,6 +95,7 @@ def check_cert_created():
             if fqdn in match_fqdn:
                 status_set('active', 'Ready')
                 set_flag('client.cert-created')
+                clear_flag('endpoint.ssl-termination.update')
 
 
 ########################################################################
