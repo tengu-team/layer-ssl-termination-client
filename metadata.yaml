@@ -16,4 +16,4 @@ requires:
     interface: http
   tcp:
     interface: tcp
-series: ['xenial']
+series: ['bionic']

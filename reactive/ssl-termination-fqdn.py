@@ -39,6 +39,7 @@ config = config()
 @when_not('website.available',
           'endpoint.tcp.joined')
 def missing_service_relation():
+    clear_flag('client.cert-created')
     status_set('blocked', 'Waiting for http/tcp relation')
 
 
@@ -53,7 +54,7 @@ def missing_ssl_termination_relation():
           'config.changed.credentials')
 def fqdns_changed():
     clear_flag('client.cert-requested')
-    clear_flag('cert-created')
+    clear_flag('client.cert-created')
 
 
 ########################################################################
@@ -120,7 +121,6 @@ def check_cert_created():
             if fqdn in match_fqdn:
                 status_set('active', 'Ready')
                 set_flag('client.cert-created')
-
     if is_flag_set('endpoint.ssl-termination.update'):
         clear_flag('endpoint.ssl-termination.update')
 
