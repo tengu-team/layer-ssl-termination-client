@@ -14,4 +14,4 @@ requires:
     scope: container
   website:
     interface: http
-series: ['xenial']
+series: ['bionic', 'xenial']

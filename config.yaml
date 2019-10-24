@@ -14,3 +14,8 @@ options:
     default: ''
     description: |
       Contact email for Let's Encrypt
+  nginx-config:
+    type: string
+    default: ''
+    description: |
+      ; separated list with NGINX configs. These options will be added to the location block. Ex. 'client_max_body_size 9G;client_body_timeout 50s;'
