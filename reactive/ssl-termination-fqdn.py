@@ -16,9 +16,10 @@
 
 import os
 from charmhelpers.core.hookenv import status_set, config
-from charms.reactive import when, when_not, set_flag, clear_flag, when_any
+from charms.reactive import when, when_not, set_flag, clear_flag, when_any, hook
 from charms.reactive.relations import endpoint_from_flag
 from charms.reactive.helpers import data_changed
+from charms.reactive.flags import is_flag_set
 
 
 config = config()
@@ -44,6 +45,18 @@ def missing_ssl_termination_relation():
           'config.changed.nginx-config')
 def fqdns_changed():
     clear_cert_flags()
+
+
+########################################################################
+# Upgrade-charm
+########################################################################
+
+@hook('upgrade-charm')
+def upgrade_charm():
+    status_set('maintenance', 'Upgrading charm..')
+    if is_flag_set('cert-created'):
+        clear_flag('cert-created')
+        set_flag('client.cert-created')
 
 
 ########################################################################
